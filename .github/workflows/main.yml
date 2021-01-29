@@ -95,7 +95,7 @@ jobs:
       - name: Install Unity
         uses: crazy-max/ghaction-chocolatey@v1.2.2
         with:
-          args: install --yes unity --version=2019.4.18 unity-win-il2cpp --version=2019.4.18 unity-metro --version=2019.4.18
+          args: install --yes unity --version=2019.4.5 unity-win-il2cpp --version=2019.4.5 unity-metro --version=2019.4.5
       - name: Cache Library
         uses: actions/cache@v2
         with:
