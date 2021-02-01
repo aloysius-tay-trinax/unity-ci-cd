@@ -10,7 +10,65 @@ env:
   UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
 
 jobs:
-  buildForSomePlatforms:
+  upload-release-to-github-releases:
+    name: Upload release to Github Releases
+    runs-on: ubuntu-latest
+    needs: release-project
+    steps:
+      - name: Get Release url
+        id: get_release
+        uses: bruceadams/get-release@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: echo ${{ steps.get_release.outputs.upload_url }}
+
+      - name: Get latest release version number
+        id: get_version
+        uses: battila7/get-version-action@v2
+
+      - run: echo ${{ steps.get_version.outputs.version }}
+
+      - name: Download build
+        uses: actions/download-artifact@v2
+        with:
+          name: Build
+
+      - name: Archive build
+        uses: thedoctor0/zip-release@master
+        with:
+          filename: release.zip
+          exclusions: '*.git* /*node_modules/*'
+
+      - name: Upload asset to Github Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: ./release.zip
+          asset_name: release-v${{ steps.get_version.outputs.version }}.zip
+          asset_content_type: application/zip
+
+  release-project:
+    name: Release build to Github Releases
+    runs-on: ubuntu-latest
+    needs: build-project
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Create Release
+        uses: anton-yurchenko/git-release@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRAFT_RELEASE: 'false'
+          PRE_RELEASE: 'false'
+          CHANGELOG_FILE: 'CHANGELOG.md'
+          ALLOW_EMPTY_CHANGELOG: 'false'
+          ALLOW_TAG_PREFIX: 'false'
+
+  build-project:
     name: Build for ${{ matrix.targetPlatform }} on version ${{ matrix.unityVersion }}
     runs-on: ubuntu-latest
     strategy:
