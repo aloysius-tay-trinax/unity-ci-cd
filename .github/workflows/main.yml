@@ -2,7 +2,10 @@ name: Build project
 
 on:
   # pull_request: {}
-  push: { branches: [master] }
+  push: 
+    tags:
+      - '*'
+    { branches: [master] }
 
 env:
   UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
